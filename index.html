@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SmartPark System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+    <style>
+        :root{
+            --bg1:#0b1220;
+            --bg2:#0f1b33;
+            --card: rgba(255,255,255,.06);
+            --card2: rgba(255,255,255,.09);
+            --text:#eaf1ff;
+            --muted: rgba(234,241,255,.72);
+            --primary:#6d5efc;
+            --primary2:#37d5ff;
+            --success:#38d996;
+            --danger:#ff4d6d;
+            --shadow: 0 18px 45px rgba(0,0,0,.35);
+            --radius: 18px;
+        }
+
+        *{ box-sizing: border-box; }
+
+        body{
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            background: radial-gradient(1000px 600px at 10% 10%, rgba(109,94,252,.35), transparent 60%),
+                        radial-gradient(900px 500px at 90% 15%, rgba(55,213,255,.25), transparent 55%),
+                        linear-gradient(180deg, var(--bg1), var(--bg2));
+            color: var(--text);
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .app{
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header{
+            display:flex;
+            align-items:flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        h1{
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: .2px;
+        }
+
+        .sub{
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13.5px;
+            line-height: 1.35;
+        }
+
+        .heroCard{
+            background: linear-gradient(135deg, rgba(109,94,252,.22), rgba(55,213,255,.14));
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            box-shadow: var(--shadow);
+            min-width: 260px;
+        }
+
+        .kpis{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .kpi{
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 14px;
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi:before{
+            content:"";
+            position:absolute;
+            inset:-1px;
+            background: radial-gradient(120px 80px at 20% 20%, rgba(255,255,255,.18), transparent 60%);
+            pointer-events:none;
+        }
+
+        .kpi .label{
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .kpi .value{
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .grid{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 860px){
+            .grid{ grid-template-columns: 1fr; }
+            header{ flex-direction: column; }
+            .heroCard{ min-width: unset; width: 100%; }
+        }
+
+        .card{
+            background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card h3{
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: rgba(255,255,255,.92);
+        }
+
+        .row{
+            display:flex;
+            gap: 10px;
+            align-items:center;
+            flex-wrap: wrap;
+        }
+
+        input{
+            flex: 1;
+            min-width: 220px;
+            padding: 12px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.14);
+            background: rgba(0,0,0,.18);
+            color: var(--text);
+            outline: none;
+            transition: border-color .15s ease, transform .12s ease;
+        }
+
+        input:focus{
+            border-color: rgba(109,94,252,.75);
+            transform: translateY(-1px);
+        }
+
+        button{
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 0;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--primary2));
+            color: white;
+            font-weight: 700;
+            letter-spacing: .2px;
+            transition: transform .12s ease, filter .15s ease;
+            box-shadow: 0 12px 25px rgba(109,94,252,.25);
+        }
+
+        button:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+        button:active{ transform: translateY(0px); }
+
+        button.secondary{
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.14);
+            box-shadow: none;
+        }
+
+        #status{
+            margin-top: 12px;
+            font-weight: 800;
+            padding: 10px 12px;
+            border-radius: 14px;
+            display:none;
+            border: 1px solid rgba(255,255,255,.14);
+            background: rgba(0,0,0,.18);
+        }
+
+        #status.show{ display:block; animation: pop .28s ease both; }
+        #status.success{ color: rgba(56,217,150,.95); border-color: rgba(56,217,150,.35); }
+        #status.danger{ color: rgba(255,77,109,.95); border-color: rgba(255,77,109,.35); }
+        #status.info{ color: rgba(55,213,255,.95); border-color: rgba(55,213,255,.35); }
+
+        @keyframes pop{
+            from{ opacity:0; transform: translateY(6px) scale(.98); }
+            to{ opacity:1; transform: translateY(0) scale(1); }
+        }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            background: rgba(0,0,0,.12);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        th, td{
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,.10);
+        }
+
+        thead th{
+            background: rgba(255,255,255,.06);
+            color: rgba(255,255,255,.86);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        tbody tr{
+            transition: background .15s ease, transform .15s ease;
+            animation: rowIn .25s ease both;
+        }
+
+        @keyframes rowIn{
+            from{ opacity:0; transform: translateY(6px); }
+            to{ opacity:1; transform: translateY(0); }
+        }
+
+        tbody tr:hover{
+            background: rgba(255,255,255,.06);
+        }
+
+        .muted{ color: var(--muted); }
+
+        #receiptWrap{
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px dashed rgba(255,255,255,.18);
+            background: rgba(0,0,0,.14);
+            display:none;
+        }
+
+        #receiptWrap.show{ display:block; animation: slideFade .28s ease both; }
+        @keyframes slideFade{
+            from{ opacity:0; transform: translateY(6px); }
+            to{ opacity:1; transform: translateY(0); }
+        }
+
+        #receipt{
+            white-space: pre-wrap;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12.5px;
+            line-height: 1.45;
+        }
+
+        #billingDetails{
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color: rgba(255,255,255,.92);
+            min-height: 22px;
+            display:flex;
+            align-items:center;
+        }
+
+        .tableHeaderRow{
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 2px;
+        }
+
+        .tag{
+            display:inline-flex;
+            gap: 8px;
+            align-items:center;
+            padding: 8px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.12);
+            color: rgba(255,255,255,.90);
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        .dot{
+            width:10px;
+            height:10px;
+            border-radius: 999px;
+            background: var(--success);
+            box-shadow: 0 0 0 6px rgba(56,217,150,.14);
+        }
+
+        .dot.danger{ background: var(--danger); box-shadow: 0 0 0 6px rgba(255,77,109,.14); }
+
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+    <header>
+        <div>
+            <h1 style="display:flex; align-items:center; gap:12px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:14px; background:linear-gradient(135deg, rgba(109,94,252,.95), rgba(55,213,255,.75)); box-shadow: 0 14px 30px rgba(109,94,252,.18); border:1px solid rgba(255,255,255,.16);">
+                    <span style="font-weight:900; letter-spacing:.2px; font-size:16px;">M</span>
+                </span>
+                SmartPark Parking Management System
+            </h1>
+            <div class="sub">Auto-assigns the first free slot (1–50), computes billing on exit, and shows live occupancy.</div>
+            <div class="sub" style="margin-top:8px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12);">
+                        <span style="width:10px; height:10px; border-radius:999px; background: rgba(55,213,255,.95); box-shadow: 0 0 0 6px rgba(55,213,255,.14);"></span>
+                        <span><b>misekigoroye</b></span>
+                    </span>
+                    <span style="display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background: rgba(109,94,252,.10); border:1px solid rgba(109,94,252,.28); color: rgba(234,241,255,.92); font-weight:800;">
+                        <span style="width:10px; height:10px; border-radius:999px; background: rgba(109,94,252,.95); box-shadow: 0 0 0 6px rgba(109,94,252,.14);"></span>
+                        <span>Building • Testing • Deploying</span>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="heroCard">
+            <div class="tableHeaderRow" style="margin-top:0;">
+                <span class="tag"><span id="statusDot" class="dot"></span><span id="occupancyText">Occupied: 0/50</span></span>
+            </div>
+            <div class="kpis">
+                <div class="kpi">
+                    <div class="label">Occupied slots</div>
+                    <div class="value" id="occupiedValue">0</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Available slots</div>
+                    <div class="value" id="availableValue">50</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid">
+        <section class="card">
+            <h3>Add Car</h3>
+
+            <div class="row">
+                <input type="text" id="plate" placeholder="Enter Number Plate (e.g., RAB301C)">
+                <button onclick="parkCar()">Park Car</button>
+            </div>
+
+            <p class="muted" style="margin:10px 0 0; font-size:13px;">Slot will be auto-assigned (1 to 50)</p>
+
+            <div style="margin-top: 14px;">
+                <h3 style="margin-bottom: 8px;">Check Parking</h3>
+                <div class="row">
+                    <button class="secondary" onclick="checkParkingFull()">Check Park Full</button>
+                </div>
+            </div>
+
+            <div id="status"></div>
+
+            <div id="receiptWrap">
+                <h3 style="margin: 0 0 8px;">Receipt / Token Update</h3>
+                <div id="receipt"></div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3>Remove Car</h3>
+            <div class="row">
+                <input type="text" id="removePlate" placeholder="Enter Number Plate">
+                <button onclick="removeCar()">Remove Car</button>
+            </div>
+
+            <h3 style="margin-top: 14px;">Exit Billing Details</h3>
+            <div id="billingDetails" class="muted">No billing yet.</div>
+
+            <h3 style="margin-top: 16px;">Parked Cars</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Number Plate</th>
+                        <th>Slot</th>
+                        <th>Entry Time</th>
+                    </tr>
+                </thead>
+                <tbody id="carList"></tbody>
+            </table>
+        </section>
+    </div>
+
+    <footer style="margin-top:22px; padding-top:18px; border-top:1px solid rgba(255,255,255,.12);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;">
+            <div>
+                <div style="font-weight:900; letter-spacing:.2px;">misekigoroye</div>
+                <div class="muted" style="margin-top:6px; font-size:13px; line-height:1.4;">Deducated to Ms Olga the pretty girl 💜</div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <span class="tag" style="background: rgba(255,255,255,.04);">
+                    <span style="opacity:.9;">Email:</span>
+                    <b style="letter-spacing:.2px;">hirwaaime41@gmail.com</b>
+                </span>
+                <span class="tag" style="background: rgba(109,94,252,.10); border-color: rgba(109,94,252,.28);">
+                    <span style="opacity:.9;">©</span>
+                    <b>misekigoroye</b>
+                    <span style="opacity:.9;">{year}</span>
+                </span>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+  // lightweight year inject (keeps the file standalone)
+  (function(){
+    var el = document.body.querySelector('footer b');
+    var footer = document.body.querySelector('footer');
+    if(!footer) return;
+    var yearSpans = footer.querySelectorAll('span');
+    var year = new Date().getFullYear();
+    yearSpans.forEach(function(s){
+      if(s.textContent && s.textContent.trim() === '{year}') s.textContent = String(year);
+    });
+  })();
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
+
+
