@@ -183,8 +183,10 @@ function removeCar() {
     `Exit at ${formatTime(exitMs)}. ${extraBreakdown}.`;
 
   displayCars();
+  syncTraversalIfActive();
   document.getElementById("removePlate").value = "";
 }
+
 
 function renderSummary(){
   const occupied = slots.filter(Boolean).length;
@@ -199,7 +201,139 @@ function renderSummary(){
   if (availableValue) availableValue.textContent = String(available);
 }
 
-// Traverse all slots and display occupied cars
+// -----------------------
+// Traverse-by-Plate logic
+// -----------------------
+
+let traverseIndices = null; // array of slot indices in traversal order
+let traversePos = 0; // pointer into traverseIndices
+let traverseStartPlate = "";
+
+function getTraversalIndicesFromStart(startIdx) {
+  // Build a cyclic order over the full slot array, skipping empty slots.
+  // Start at startIdx, then move +1 each step, wrap around.
+  const indices = [];
+  const seen = new Set();
+
+  for (let step = 0; step < slots.length; step++) {
+    const idx = (startIdx + step) % slots.length;
+    const token = slots[idx];
+    if (!token) continue;
+    if (seen.has(idx)) continue;
+    seen.add(idx);
+    indices.push(idx);
+  }
+
+  return indices;
+}
+
+function findCarIndexByPlate(plate) {
+  for (let i = 0; i < slots.length; i++) {
+    const token = slots[i];
+    if (token && token.numberPlate === plate) return i;
+  }
+  return -1;
+}
+
+function renderTraversalOutput() {
+  const out = document.getElementById("traverseOutput");
+  if (!out) return;
+
+  if (!traverseIndices || traverseIndices.length === 0) {
+    out.textContent = "No parked cars to traverse.";
+    return;
+  }
+
+  // If traversal was started from a plate that is no longer parked,
+  // re-sync traversal order so Next/Prev doesn't get stuck.
+  const startIdx = findCarIndexByPlate(traverseStartPlate);
+  if (startIdx === -1) {
+    traverseIndices = null;
+    traversePos = 0;
+    traverseStartPlate = "";
+    out.textContent = "Traversal ended: start plate is no longer parked.";
+    return;
+  }
+
+
+  const idx = traverseIndices[traversePos];
+  const token = slots[idx];
+  if (!token) {
+    // Slot became empty (car removed). Re-sync.
+    syncTraversalIfActive();
+    return;
+  }
+
+  const total = traverseIndices.length;
+  const currentNo = traversePos + 1;
+
+  out.textContent = `(${currentNo}/${total}) Plate: ${token.numberPlate} • Slot: ${token.slotNumber} • Entry: ${formatTime(token.entryTimeMs)}`;
+}
+
+function syncTraversalIfActive() {
+  if (!traverseIndices || traverseIndices.length === 0) return;
+
+  // Rebuild traversal order from the start plate if still parked.
+  const startIdx = findCarIndexByPlate(traverseStartPlate);
+  if (startIdx === -1) {
+    // Start car is no longer present; end traversal.
+    traverseIndices = null;
+    traversePos = 0;
+    traverseStartPlate = "";
+    renderTraversalOutput();
+    return;
+  }
+
+  traverseIndices = getTraversalIndicesFromStart(startIdx);
+  traversePos = 0;
+  renderTraversalOutput();
+}
+
+function startTraversalByPlate() {
+  const plate = document.getElementById("traversePlate").value.trim();
+
+  if (plate === "") {
+    alert("Enter number plate to start traversal");
+    return;
+  }
+
+  const startIdx = findCarIndexByPlate(plate);
+  if (startIdx === -1) {
+    alert("This number plate is not currently parked.");
+    return;
+  }
+
+  traverseStartPlate = plate;
+  traverseIndices = getTraversalIndicesFromStart(startIdx);
+  traversePos = 0;
+
+  renderTraversalOutput();
+}
+
+function traverseNext() {
+  if (!traverseIndices || traverseIndices.length === 0) {
+    renderTraversalOutput();
+    return;
+  }
+
+  traversePos = (traversePos + 1) % traverseIndices.length;
+  renderTraversalOutput();
+}
+
+function traversePrev() {
+  if (!traverseIndices || traverseIndices.length === 0) {
+    renderTraversalOutput();
+    return;
+  }
+
+  traversePos = (traversePos - 1 + traverseIndices.length) % traverseIndices.length;
+  renderTraversalOutput();
+}
+
+// -----------------------
+// Traverse all occupied cars table
+// -----------------------
+
 function displayCars() {
   const tableBody = document.getElementById("carList");
   tableBody.innerHTML = "";
@@ -225,5 +359,6 @@ function displayCars() {
 
 // Ensure summary is correct on load
 renderSummary();
+
 
 

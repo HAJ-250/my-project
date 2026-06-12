@@ -388,7 +388,21 @@
 
             <h3 style="margin-top: 16px;">Parked Cars</h3>
 
+            <div style="margin-top: 10px; padding: 12px; border-radius: 14px; background: rgba(0,0,0,.14); border: 1px dashed rgba(255,255,255,.18);">
+                <h3 style="margin: 0 0 10px; font-size: 16px;">Traverse By Plate</h3>
+                <div class="row">
+                    <input type="text" id="traversePlate" placeholder="Enter Number Plate to start (e.g., RAB301C)">
+                    <button onclick="startTraversalByPlate()">Start Traversal</button>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <button class="secondary" onclick="traversePrev()">Previous Car</button>
+                    <button class="secondary" onclick="traverseNext()">Next Car</button>
+                </div>
+                <div id="traverseOutput" class="muted" style="margin-top: 10px; min-height: 40px; display:flex; align-items:center;"></div>
+            </div>
+
             <table>
+
                 <thead>
                     <tr>
                         <th>No</th>
